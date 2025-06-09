@@ -45,7 +45,7 @@ loop{
     let mut cmd = String::new();
     io::stdin().read_line(&mut cmd).expect("couldn't read stdin");
     match cmd[..2].trim() {
-        "t " => {
+        "t" => {
             let position: usize = cmd[2..].trim().parse().expect("Not a valid number");
             let todo = &todos[position];
             let id = &todo.id;
@@ -57,13 +57,13 @@ loop{
             }
             conn.execute(&format!("UPDATE todos SET done = {done_int} WHERE id = {id};"), ())?;
         },
-        "d " => {
+        "d" => {
             let position: usize = cmd[2..].trim().parse().expect("Not a valid number");
             let todo = &todos[position];
             let id = &todo.id;
             conn.execute(&format!("DELETE FROM todos WHERE id={id}"),())?; 
         },
-        "q" | "q " => break,
+        "q" => break,
         _ => {
             println!("{}",&cmd[..2]);
             let id = rand::rng().random_range(0..2^32);
