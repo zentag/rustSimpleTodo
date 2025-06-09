@@ -56,7 +56,12 @@ fn main() -> Result<()> {
             }
             conn.execute(&format!("UPDATE todos SET done = {done_int} WHERE id = {id};"), ())?;
         },
-        "d " => println!("deleting"),
+        "d " => {
+            let position: usize = cmd[2..].trim().parse().expect("Not a valid number");
+            let todo = &todos[position];
+            let id = &todo.id;
+            conn.execute(&format!("DELETE FROM todos WHERE id={id}"),())?; 
+        },
         _ => println!("creating")
     } 
     Ok(())
