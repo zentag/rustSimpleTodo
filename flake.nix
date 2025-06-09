@@ -8,11 +8,16 @@
   outputs = inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "x86_64-linux" ];
-      perSystem = { config, self', pkgs, lib, system, ... }:
+      perSystem =
+        { self'
+        , pkgs
+        , system
+        , ...
+        }:
         let
           runtimeDeps = with pkgs; [ alsa-lib speechd ];
           buildDeps = with pkgs; [ pkg-config rustPlatform.bindgenHook ];
-          devDeps = with pkgs; [ gdb ];
+          devDeps = with pkgs; [ gdb sqlite ];
 
           cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
           msrv = cargoToml.package.rust-version;
@@ -41,7 +46,8 @@
               buildInputs = runtimeDeps;
               nativeBuildInputs = buildDeps ++ devDeps ++ [ rustc ];
             };
-        in {
+        in
+        {
           _module.args.pkgs = import inputs.nixpkgs {
             inherit system;
             overlays = [ (import inputs.rust-overlay) ];
@@ -50,13 +56,14 @@
           packages.default = self'.packages.example;
           devShells.default = self'.devShells.nightly;
 
-          packages.example = (rustPackage "foobar");
-          packages.example-base = (rustPackage "");
+          packages.example = rustPackage "foobar";
+          packages.example-base = rustPackage "";
 
-          devShells.nightly = (mkDevShell (pkgs.rust-bin.selectLatestNightlyWith
-            (toolchain: toolchain.default)));
-          devShells.stable = (mkDevShell pkgs.rust-bin.stable.latest.default);
-          devShells.msrv = (mkDevShell pkgs.rust-bin.stable.${msrv}.default);
+          devShells.nightly =
+            mkDevShell (pkgs.rust-bin.selectLatestNightlyWith
+              (toolchain: toolchain.default));
+          devShells.stable = mkDevShell pkgs.rust-bin.stable.latest.default;
+          devShells.msrv = mkDevShell pkgs.rust-bin.stable.${msrv}.default;
         };
     };
 }
