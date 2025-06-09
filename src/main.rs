@@ -18,7 +18,6 @@ fn main() -> Result<()> {
         );",
         (), // empty list of parameters.
     )?;
-    conn.execute(" INSERT INTO todos (id,content ,done) VALUES( 123151,'relax' ,1);", ())?;
 
     let mut stmt = conn.prepare("SELECT id, content, done FROM todos")?;
     let todo_iter = stmt.query_map([], |row| {
@@ -30,8 +29,13 @@ fn main() -> Result<()> {
     })?;
     for todo in todo_iter {
         let todo = todo.unwrap();
-        println!("- [] {}", todo.content);
-        println!("{}", todo.done)
+        let x_or_nothing;
+        if todo.done == true {
+            x_or_nothing = "x";
+        } else {
+            x_or_nothing = " ";
+        }
+        println!("- [{x_or_nothing}] {}", todo.content);
     }
     let mut todo = String::new();
     io::stdin().read_line(&mut todo).expect("couldn't read stdin");
