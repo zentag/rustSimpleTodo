@@ -14,7 +14,7 @@ fn main() -> std::result::Result<(), rusqlite::Error> {
         "CREATE TABLE IF NOT EXISTS todos (
             id   INTEGER PRIMARY KEY,
             content TEXT NOT NULL,
-            done INTEGER,
+            done INTEGER
         )",
         (), // empty list of parameters.
     )?;
