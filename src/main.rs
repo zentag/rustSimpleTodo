@@ -1,9 +1,10 @@
-use::std::io;
+use std::io;
 use rusqlite::{Connection, Result};
+use rand::Rng;
 
 #[derive(Debug)]
 struct Todo {
-    id: i32,
+    id: u32,
     content: String,
     done: bool,
 }
@@ -62,7 +63,11 @@ fn main() -> Result<()> {
             let id = &todo.id;
             conn.execute(&format!("DELETE FROM todos WHERE id={id}"),())?; 
         },
-        _ => println!("creating")
+        _ => {
+            let id = rand::rng().random_range(0..2^32);
+            let trimmed_cmd = cmd.trim();
+            conn.execute(&format!("INSERT INTO todos (id, content, done) VALUES ({id}, '{trimmed_cmd}', 0)"),())?;
+        }
     } 
     Ok(())
 }
