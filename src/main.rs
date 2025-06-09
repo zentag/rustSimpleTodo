@@ -21,7 +21,7 @@ fn main() -> Result<()> {
     )?;
 
     let mut stmt = conn.prepare("SELECT id, content, done FROM todos")?;
-    let mut todo_iter = stmt.query_map([], |row| {
+    let todo_iter = stmt.query_map([], |row| {
         Ok(Todo {
             id: row.get(0)?,
             content: row.get(1)?,
@@ -46,7 +46,15 @@ fn main() -> Result<()> {
     match &cmd[..2] {
         "t " => {
             let position: usize = cmd[2..].trim().parse().expect("Not a valid number");
-            println!("{}", todos[position].content)
+            let todo = &todos[position];
+            let id = &todo.id;
+            let done_int;
+            if &todo.done == &true {
+                done_int = 0;
+            } else {
+                done_int = 1;
+            }
+            conn.execute(&format!("UPDATE todos SET done = {done_int} WHERE id = {id};"), ())?;
         },
         "d " => println!("deleting"),
         _ => println!("creating")
