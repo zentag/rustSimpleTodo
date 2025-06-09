@@ -39,8 +39,15 @@ fn main() -> Result<()> {
         println!("- [{x_or_nothing}] {}", todo.content);
     }
     println!("enter command...");
-    let mut todo = String::new();
-    io::stdin().read_line(&mut todo).expect("couldn't read stdin");
-    println!("back to start");
+    let mut cmd = String::new();
+    io::stdin().read_line(&mut cmd).expect("couldn't read stdin");
+    match &cmd[..2] {
+        "t " => {
+            let position: &i32 = &cmd[2..].trim().parse().expect("Not a valid number");
+println!("{position}");
+        },
+        "d " => println!("deleting"),
+        _ => println!("creating")
+    } 
     Ok(())
 }
