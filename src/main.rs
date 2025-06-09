@@ -10,7 +10,7 @@ struct Todo {
 }
 fn main() -> Result<()> {
     println!("welcome to your todo list");
-    println!("controls: enter todo content to make new todo, use t <position in list> to toggle todo, and use d <position> to delete todo");
+    println!("controls: enter todo content to make new todo, use t <position in list> to toggle todo, use d <position> to delete todo, or use q to quit");
     let conn = Connection::open("./db.db3")?;
     conn.execute(
         "CREATE TABLE IF NOT EXISTS todos (
@@ -20,7 +20,7 @@ fn main() -> Result<()> {
         );",
         (), // empty list of parameters.
     )?;
-
+loop{
     let mut stmt = conn.prepare("SELECT id, content, done FROM todos")?;
     let todo_iter = stmt.query_map([], |row| {
         Ok(Todo {
@@ -44,7 +44,7 @@ fn main() -> Result<()> {
     println!("enter command...");
     let mut cmd = String::new();
     io::stdin().read_line(&mut cmd).expect("couldn't read stdin");
-    match &cmd[..2] {
+    match cmd[..2].trim() {
         "t " => {
             let position: usize = cmd[2..].trim().parse().expect("Not a valid number");
             let todo = &todos[position];
@@ -63,11 +63,14 @@ fn main() -> Result<()> {
             let id = &todo.id;
             conn.execute(&format!("DELETE FROM todos WHERE id={id}"),())?; 
         },
+        "q" | "q " => break,
         _ => {
+            println!("{}",&cmd[..2]);
             let id = rand::rng().random_range(0..2^32);
             let trimmed_cmd = cmd.trim();
             conn.execute(&format!("INSERT INTO todos (id, content, done) VALUES ({id}, '{trimmed_cmd}', 0)"),())?;
         }
-    } 
+    }
+}
     Ok(())
 }
