@@ -9,6 +9,7 @@ struct Todo {
 }
 fn main() -> Result<()> {
     println!("welcome to your todo list");
+    println!("controls: enter todo content to make new todo, use t <position in list> to toggle todo, and use d <position> to delete todo");
     let conn = Connection::open("./db.db3")?;
     conn.execute(
         "CREATE TABLE IF NOT EXISTS todos (
@@ -37,6 +38,7 @@ fn main() -> Result<()> {
         }
         println!("- [{x_or_nothing}] {}", todo.content);
     }
+    println!("enter command...");
     let mut todo = String::new();
     io::stdin().read_line(&mut todo).expect("couldn't read stdin");
     println!("back to start");
