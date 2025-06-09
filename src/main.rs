@@ -21,13 +21,14 @@ fn main() -> Result<()> {
     )?;
 
     let mut stmt = conn.prepare("SELECT id, content, done FROM todos")?;
-    let todo_iter = stmt.query_map([], |row| {
+    let mut todo_iter = stmt.query_map([], |row| {
         Ok(Todo {
             id: row.get(0)?,
             content: row.get(1)?,
             done: row.get(2)?,
         })
     })?;
+    let mut todos = vec![];
     for todo in todo_iter {
         let todo = todo.unwrap();
         let x_or_nothing;
@@ -37,14 +38,15 @@ fn main() -> Result<()> {
             x_or_nothing = " ";
         }
         println!("- [{x_or_nothing}] {}", todo.content);
+        todos.push(todo);
     }
     println!("enter command...");
     let mut cmd = String::new();
     io::stdin().read_line(&mut cmd).expect("couldn't read stdin");
     match &cmd[..2] {
         "t " => {
-            let position: &i32 = &cmd[2..].trim().parse().expect("Not a valid number");
-println!("{position}");
+            let position: usize = cmd[2..].trim().parse().expect("Not a valid number");
+            println!("{}", todos[position].content)
         },
         "d " => println!("deleting"),
         _ => println!("creating")
