@@ -1,6 +1,6 @@
-use std::io;
-use rusqlite::{Connection, Result};
 use rand::Rng;
+use rusqlite::{Connection, Result};
+use std::io;
 
 #[derive(Debug)]
 struct Todo {
@@ -20,57 +20,67 @@ fn main() -> Result<()> {
         );",
         (), // empty list of parameters.
     )?;
-loop{
-    let mut stmt = conn.prepare("SELECT id, content, done FROM todos")?;
-    let todo_iter = stmt.query_map([], |row| {
-        Ok(Todo {
-            id: row.get(0)?,
-            content: row.get(1)?,
-            done: row.get(2)?,
-        })
-    })?;
-    let mut todos = vec![];
-    for todo in todo_iter {
-        let todo = todo.unwrap();
-        let x_or_nothing;
-        if todo.done == true {
-            x_or_nothing = "x";
-        } else {
-            x_or_nothing = " ";
-        }
-        println!("- [{x_or_nothing}] {}", todo.content);
-        todos.push(todo);
-    }
-    println!("enter command...");
-    let mut cmd = String::new();
-    io::stdin().read_line(&mut cmd).expect("couldn't read stdin");
-    match cmd[..2].trim() {
-        "t" => {
-            let position: usize = cmd[2..].trim().parse().expect("Not a valid number");
-            let todo = &todos[position];
-            let id = &todo.id;
-            let done_int;
-            if &todo.done == &true {
-                done_int = 0;
+    loop {
+        let mut stmt = conn.prepare("SELECT id, content, done FROM todos")?;
+        let todo_iter = stmt.query_map([], |row| {
+            Ok(Todo {
+                id: row.get(0)?,
+                content: row.get(1)?,
+                done: row.get(2)?,
+            })
+        })?;
+        let mut todos = vec![];
+        for todo in todo_iter {
+            let todo = todo.unwrap();
+            let x_or_nothing;
+            if todo.done == true {
+                x_or_nothing = "x";
             } else {
-                done_int = 1;
+                x_or_nothing = " ";
             }
-            conn.execute(&format!("UPDATE todos SET done = {done_int} WHERE id = {id};"), ())?;
-        },
-        "d" => {
-            let position: usize = cmd[2..].trim().parse().expect("Not a valid number");
-            let todo = &todos[position];
-            let id = &todo.id;
-            conn.execute(&format!("DELETE FROM todos WHERE id={id}"),())?; 
-        },
-        "q" => break,
-        _ => {
-            println!("{}",&cmd[..2]);
-            let id = rand::rng().random_range(0..2^32);
-            let trimmed_cmd = cmd.trim();
-            conn.execute(&format!("INSERT INTO todos (id, content, done) VALUES ({id}, '{trimmed_cmd}', 0)"),())?;
+            println!("- [{x_or_nothing}] {}", todo.content);
+            todos.push(todo);
+        }
+        println!("enter command...");
+        let mut cmd = String::new();
+        io::stdin()
+            .read_line(&mut cmd)
+            .expect("couldn't read stdin");
+        match cmd[..2].trim() {
+            "t" => {
+                let position: usize = cmd[2..].trim().parse().expect("Not a valid number");
+                let todo = &todos[position];
+                let id = &todo.id;
+                let done_int;
+                if &todo.done == &true {
+                    done_int = 0;
+                } else {
+                    done_int = 1;
+                }
+                conn.execute(
+                    &format!("UPDATE todos SET done = {done_int} WHERE id = {id};"),
+                    (),
+                )?;
+            }
+            "d" => {
+                let position: usize = cmd[2..].trim().parse().expect("Not a valid number");
+                let todo = &todos[position];
+                let id = &todo.id;
+                conn.execute(&format!("DELETE FROM todos WHERE id={id}"), ())?;
+            }
+            "q" => break,
+            _ => {
+                println!("{}", &cmd[..2]);
+                let id = rand::rng().random_range(0..2 ^ 32);
+                let trimmed_cmd = cmd.trim();
+                conn.execute(
+                    &format!(
+                        "INSERT INTO todos (id, content, done) VALUES ({id}, '{trimmed_cmd}', 0)"
+                    ),
+                    (),
+                )?;
+            }
         }
     }
-}
     Ok(())
 }
